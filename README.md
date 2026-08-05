@@ -1,6 +1,20 @@
 # Astronomical Image Downloader (Web Interface)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A web-based tool for downloading astronomical images from various surveys.
+
+## Repository
+
+- **GitHub**: https://github.com/zhengxc2022/astro_dl
+- **Clone (SSH)**:
+  ```bash
+  git clone git@github.com:zhengxc2022/astro_dl.git
+  ```
+- **Clone (HTTPS)**:
+  ```bash
+  git clone https://github.com/zhengxc2022/astro_dl.git
+  ```
 
 ## Features
 
@@ -156,4 +170,4 @@ It is good to use `from dltools_web.lib.DLtools import img_download` in your scr
 
 ## License
 
-This project is for academic use. Individual survey data has its own terms of use.
+This project is released under the [MIT License](LICENSE). Individual survey data has its own terms of use.
