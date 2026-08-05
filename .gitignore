@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Downloaded / runtime data (keep directory, ignore contents)
+downloads/*
+!downloads/.gitkeep
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+
+# Local config that may contain secrets
+*.local.conf
+config.local.py

@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astronomical Image Downloader</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #00d9ff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+        
+        .form-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .form-section h2 {
+            color: #00d9ff;
+            margin-top: 0;
+            border-bottom: 2px solid #00d9ff;
+            padding-bottom: 10px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 12px;
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #00d9ff;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+        }
+        
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #00d9ff;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        #extra-params {
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00d9ff 0%, #0077b6 100%);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 217, 255, 0.5);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .output-section {
+            margin-top: 20px;
+        }
+        
+        .output-section h2 {
+            color: #00d9ff;
+            margin-bottom: 15px;
+        }
+        
+        #output-box {
+            background: #0a0a14;
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #00ff88;
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        #output-box::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        #output-box::-webkit-scrollbar-track {
+            background: #0a0a14;
+        }
+        
+        #output-box::-webkit-scrollbar-thumb {
+            background: #00d9ff;
+            border-radius: 5px;
+        }
+        
+        .status {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        .status.error {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+        
+        .status.info {
+            background: rgba(0, 217, 255, 0.2);
+            border: 1px solid #00d9ff;
+            color: #00d9ff;
+        }
+        
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 217, 255, 0.3);
+            border-top-color: #00d9ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        /* Directory Browser Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: #1a1a2e;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 700px;
+            max-height: 70vh;
+            overflow-y: auto;
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(0, 217, 255, 0.3);
+            padding-bottom: 15px;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: #00d9ff;
+        }
+        
+        .close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+        }
+        
+        .close-btn:hover {
+            color: #fff;
+        }
+        
+        .browser-path {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #00d9ff;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            word-break: break-all;
+        }
+        
+        .browser-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .btn-secondary {
+            background: rgba(0, 217, 255, 0.1);
+            color: #00d9ff;
+            border: 1px solid rgba(0, 217, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(0, 217, 255, 0.2);
+        }
+        
+        .directory-list {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .directory-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .directory-item:hover {
+            background: rgba(0, 217, 255, 0.1);
+        }
+        
+        .directory-item:last-child {
+            border-bottom: none;
+        }
+        
+        .directory-item.empty {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .path-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            background: rgba(0, 217, 255, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .path-btn:hover {
+            background: rgba(0, 217, 255, 0.2);
+            border-color: #00d9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔭 Astronomical Image Downloader</h1>
+        
+        <div class="form-section">
+            <h2>Coordinate Input</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="ra">Right Ascension (degrees)</label>
+                    <input type="number" id="ra" step="0.0001" placeholder="e.g., 123.4567">
+                    <span class="help-text">Value range: 0-360</span>
+                </div>
+                <div class="form-group">
+                    <label for="dec">Declination (degrees)</label>
+                    <input type="number" id="dec" step="0.0001" placeholder="e.g., 12.3456">
+                    <span class="help-text">Value range: -90 to +90</span>
+                </div>
+                <div class="form-group">
+                    <label for="size">Cutout Size (arcseconds)</label>
+                    <input type="number" id="size" value="90" step="1" placeholder="e.g., 90">
+                    <span class="help-text">Cutout size (not radius)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>Output Settings</h2>
+            <div class="form-group">
+                <label for="output-dir">Download Directory</label>
+                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                    <input type="text" id="output-dir" value="./downloads/" placeholder="e.g., ./downloads/ or /home/user/data/" style="flex: 1;">
+                    <button type="button" class="btn btn-secondary" onclick="openDirectoryBrowser()" style="padding: 12px 20px;">
+                        📁 Browse
+                    </button>
+                </div>
+                <span class="help-text">Directory path for saving downloaded files (will be created if not exists)</span>
+            </div>
+            
+            <!-- Common Paths Quick Access -->
+            <div id="common-paths" style="margin-top: 15px;">
+                <label style="font-size: 12px; color: #888;">Quick Access:</label>
+                <div id="common-paths-buttons" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;"></div>
+            </div>
+        
+        <div class="form-section">
+            <h2>Survey Selection</h2>
+            <div class="form-group">
+                <label for="survey">Choose a Survey</label>
+                <select id="survey">
+                    <option value="">-- Select Survey --</option>
+                </select>
+            </div>
+            
+            <div id="extra-params"></div>
+        </div>
+        
+        <div style="text-align: center;">
+            <button id="download-btn" class="btn btn-primary" disabled>
+                📥 Start Download
+            </button>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Downloading...</span>
+            </div>
+        </div>
+        
+        <div class="output-section">
+            <h2>📋 Output Log</h2>
+            <div id="status-box"></div>
+            <div id="output-box">Waiting for download...</div>
+        </div>
+    </div>
+
+    <!-- Directory Browser Modal -->
+    <div id="dir-browser-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📁 Select Download Directory</h2>
+                <button class="close-btn" onclick="closeDirectoryBrowser()">&times;</button>
+            </div>
+            
+            <div class="browser-path" id="current-path">Loading...</div>
+            
+            <div class="browser-nav">
+                <button class="btn btn-secondary" onclick="goToParent()">
+                    ⬆️ Parent
+                </button>
+                <button class="btn btn-secondary" onclick="goHome()">
+                    🏠 Home
+                </button>
+                <button class="btn btn-secondary" onclick="refreshCurrent()">
+                    🔄 Refresh
+                </button>
+            </div>
+            
+            <div class="directory-list" id="directory-list">
+                <!-- Directory items will be populated here -->
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeDirectoryBrowser()">
+                    Cancel
+                </button>
+                <button class="btn btn-primary" onclick="selectCurrentPath()">
+                    ✓ Select This Directory
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const surveySelect = document.getElementById('survey');
+        const extraParamsDiv = document.getElementById('extra-params');
+        const downloadBtn = document.getElementById('download-btn');
+        const outputBox = document.getElementById('output-box');
+        const statusBox = document.getElementById('status-box');
+        const loadingDiv = document.getElementById('loading');
+        
+        // Survey configurations (loaded from server)
+        let surveyConfigs = {};
+        let currentBrowserPath = '';
+        
+        // Load surveys and common paths on page load
+        loadSurveys();
+        loadCommonPaths();
+        
+        function loadSurveys() {
+            fetch('/api/surveys')
+                .then(response => response.json())
+                .then(data => {
+                    surveyConfigs = data;
+                    populateSurveySelect(data);
+                })
+                .catch(error => {
+                    console.error('Error loading surveys:', error);
+                    showStatus('Failed to load surveys from server', 'error');
+                });
+        }
+        
+        function loadCommonPaths() {
+            fetch('/api/common-paths')
+                .then(response => response.json())
+                .then(paths => {
+                    const container = document.getElementById('common-paths-buttons');
+                    container.innerHTML = '';
+                    paths.forEach(p => {
+                        const btn = document.createElement('button');
+                        btn.className = 'path-btn';
+                        btn.innerHTML = `${p.icon} ${p.name}`;
+                        btn.onclick = () => {
+                            document.getElementById('output-dir').value = p.path;
+                        };
+                        container.appendChild(btn);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading common paths:', error);
+                });
+        }
+        
+        // Directory Browser Functions
+        function openDirectoryBrowser() {
+            const modal = document.getElementById('dir-browser-modal');
+            modal.style.display = 'block';
+            browsePath(document.getElementById('output-dir').value || './');
+        }
+        
+        function closeDirectoryBrowser() {
+            document.getElementById('dir-browser-modal').style.display = 'none';
+        }
+        
+        function browsePath(path) {
+            fetch('/api/browse', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({path: path})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentBrowserPath = data.current_path;
+                    document.getElementById('current-path').textContent = data.current_path;
+                    renderDirectoryList(data.directories, data.parent);
+                } else {
+                    showStatus(data.error || 'Error browsing directory', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showStatus('Failed to browse directory', 'error');
+            });
+        }
+        
+        function renderDirectoryList(directories, parentPath) {
+            const list = document.getElementById('directory-list');
+            list.innerHTML = '';
+            
+            if (directories.length === 0) {
+                list.innerHTML = '<div class="directory-item empty">No subdirectories found</div>';
+            } else {
+                directories.forEach(dir => {
+                    const item = document.createElement('div');
+                    item.className = 'directory-item';
+                    item.innerHTML = `📁 ${dir.name}`;
+                    item.onclick = () => browsePath(dir.path);
+                    list.appendChild(item);
+                });
+            }
+        }
+        
+        function goToParent() {
+            if (currentBrowserPath && currentBrowserPath !== '/') {
+                const parent = currentBrowserPath.split('/').slice(0, -1).join('/') || '/';
+                browsePath(parent);
+            }
+        }
+        
+        function goHome() {
+            browsePath('~');
+        }
+        
+        function refreshCurrent() {
+            if (currentBrowserPath) {
+                browsePath(currentBrowserPath);
+            }
+        }
+        
+        function selectCurrentPath() {
+            document.getElementById('output-dir').value = currentBrowserPath;
+            closeDirectoryBrowser();
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('dir-browser-modal');
+            if (event.target == modal) {
+                closeDirectoryBrowser();
+            }
+        }
+        
+        function populateSurveySelect(surveys) {
+            // Clear existing options except the first one
+            surveySelect.innerHTML = '<option value="">-- Select Survey --</option>';
+            
+            for (const [key, survey] of Object.entries(surveys)) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = survey.name;
+                surveySelect.appendChild(option);
+            }
+        }
+        
+        // Update extra parameters when survey changes
+        surveySelect.addEventListener('change', function() {
+            const surveyKey = this.value;
+            
+            if (!surveyKey) {
+                extraParamsDiv.style.display = 'none';
+                extraParamsDiv.innerHTML = '';
+                downloadBtn.disabled = true;
+                return;
+            }
+            
+            downloadBtn.disabled = false;
+            
+            // Fetch detailed survey config
+            fetch(`/api/survey/${surveyKey}`)
+                .then(response => response.json())
+                .then(config => {
+                    renderParams(config.params);
+                    extraParamsDiv.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching survey config:', error);
+                });
+        });
+        
+        // Render parameter inputs
+        function renderParams(params) {
+            // 完全清空旧参数
+            extraParamsDiv.innerHTML = '';
+            
+            let html = '<h3 style="color: #00d9ff; margin-top: 20px;">Additional Parameters</h3>';
+            html += '<div class="form-row">';
+            
+            for (const [key, param] of Object.entries(params)) {
+                html += '<div class="form-group">';
+                html += `<label for="param_${key}">${param.label}</label>`;
+                
+                if (param.type === 'text' || param.type === 'password') {
+                    html += `<input type="${param.type}" id="param_${key}" value="${param.default}" autocomplete="off">`;
+                } else if (param.type === 'number') {
+                    html += `<input type="number" id="param_${key}" value="${param.default}" step="0.01" autocomplete="off">`;
+                } else if (param.type === 'select') {
+                    html += `<select id="param_${key}">`;
+                    param.options.forEach(option => {
+                        html += `<option value="${option}" ${option === param.default ? 'selected' : ''}>${option}</option>`;
+                    });
+                    html += '</select>';
+                } else if (param.type === 'checkbox') {
+                    html += `<label class="checkbox-label">`;
+                    html += `<input type="checkbox" id="param_${key}" ${param.default ? 'checked' : ''}>`;
+                    html += `<span>Enable</span>`;
+                    html += `</label>`;
+                }
+                
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            extraParamsDiv.innerHTML = html;
+        }
+        
+        // Handle download
+        downloadBtn.addEventListener('click', function() {
+            const ra = document.getElementById('ra').value;
+            const dec = document.getElementById('dec').value;
+            const size = document.getElementById('size').value;
+            const survey = surveySelect.value;
+            const outputDir = document.getElementById('output-dir').value || './downloads/';
+            
+            // Validation
+            if (!ra || !dec || !size) {
+                showStatus('Please fill in all coordinate fields.', 'error');
+                return;
+            }
+            
+            // Collect extra params
+            const params = {};
+            const surveyConfig = surveyConfigs[survey];
+            if (surveyConfig && surveyConfig.params) {
+                for (const key of Object.keys(surveyConfig.params)) {
+                    const element = document.getElementById(`param_${key}`);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            params[key] = element.checked;
+                        } else if (element.type === 'number') {
+                            params[key] = parseFloat(element.value);
+                        } else {
+                            params[key] = element.value;
+                        }
+                    }
+                }
+            }
+            
+            // Start download
+            outputBox.textContent = 'Starting download...\n';
+            loadingDiv.style.display = 'flex';
+            downloadBtn.disabled = true;
+            
+            fetch('/api/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ra: parseFloat(ra),
+                    dec: parseFloat(dec),
+                    size: parseFloat(size),
+                    survey: survey,
+                    params: params,
+                    output_dir: outputDir
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingDiv.style.display = 'none';
+                downloadBtn.disabled = false;
+                
+                if (data.success) {
+                    showStatus('✓ Download completed successfully!', 'success');
+                    outputBox.textContent = data.output;
+                } else {
+                    showStatus('✗ Download failed', 'error');
+                    outputBox.textContent = data.output || data.error;
+                }
+            })
+            .catch(error => {
+                loadingDiv.style.display = 'none';
+                downloadBtn.disabled = false;
+                showStatus('✗ Connection error', 'error');
+                outputBox.textContent = 'Error: ' + error.message;
+            });
+        });
+        
+        function showStatus(message, type) {
+            statusBox.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusBox.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

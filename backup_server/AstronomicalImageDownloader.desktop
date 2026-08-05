@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Astronomical Image Downloader
+Comment=Web tool for downloading astronomical survey images
+Exec=/home/zhengxc/works/my_script/dltools_web/start_desktop.sh
+Icon=applications-science
+Terminal=false
+Categories=Science;Astronomy;
+StartupNotify=true

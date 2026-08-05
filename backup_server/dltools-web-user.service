@@ -1,0 +1,12 @@
+[Unit]
+Description=Astronomical Image Downloader (User Service)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/works/my_script/dltools_web/app.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
